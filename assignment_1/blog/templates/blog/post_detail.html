@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post detail</title>
+</head>
+<body>
+    <h1>{{ post.title }}</h1>
+        <p>{{ post.content }}</p>
+    <p>Author: {{ post.author }}</p>
+    <p>Published on: {{ post.created_at }}</p>
+
+    <h2>Comments</h2>
+    <ul>
+        {% for comment in comments %}
+            <li>{{ comment.text }} - {{ comment.author }}</li>
+        {% endfor %}
+    </ul>
+    {% if user.is_authenticated %}
+        <h2>Add a Comment</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Submit</button>
+        </form>
+    {%endif%}
+
+    <a href="{% url 'post_list' %}">Return</a>
+</body>
+</html>
