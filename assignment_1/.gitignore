@@ -1,0 +1,6 @@
+.DS_Store
+blog/
+db.sqlite3
+manage.py
+my_blog/
+myvenv/
