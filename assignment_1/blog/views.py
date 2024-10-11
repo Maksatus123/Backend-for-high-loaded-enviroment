@@ -7,10 +7,22 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib import messages
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 
 
+def get_comment_count(post_id):
+    cache_key = f'comment_count_{post_id}'
+    comment_count = cache.get(cache_key)
+
+    if comment_count is None:
+        comment_count = Comment.objects.filter(post_id=post_id).count()
+        cache.set(cache_key, comment_count, timeout=60)
+
+    return comment_count
 
 
+# @cache_page(60 * 1)
 def post_list(request):
     posts = Post.objects.all().order_by('-created_at')
     paginator = Paginator(posts, 5)  # Show 5 posts per page
@@ -18,10 +30,20 @@ def post_list(request):
     page_obj = paginator.get_page(page_number)
     return render(request, 'blog/post_list.html', {'page_obj': page_obj})
 
-
 def post_detail(request, post_id):
-    post = get_object_or_404(Post, id=post_id)
-    comments = post.comments.all()
+    cache_key = f'post_detail_{post_id}'
+    post = cache.get(cache_key)
+
+    if post is None:
+        post = get_object_or_404(Post, id=post_id)
+        cache.set(cache_key, post, timeout=60)  
+
+    comments_cache_key = f'post_comments_{post_id}'
+    comments = cache.get(comments_cache_key)
+
+    if comments is None:
+        comments = post.comments.all()
+        cache.set(comments_cache_key, comments, timeout=60)  
 
     if request.method == 'POST':
         form = CommentForm(request.POST)
@@ -30,6 +52,9 @@ def post_detail(request, post_id):
             comment.post = post
             comment.author = request.user
             comment.save()
+
+            cache.delete(comments_cache_key)
+
             return redirect('post_detail', post_id=post.id)
     else:
         form = CommentForm()

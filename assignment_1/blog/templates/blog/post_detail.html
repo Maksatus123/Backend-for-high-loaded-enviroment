@@ -6,17 +6,24 @@
     <title>Post detail</title>
 </head>
 <body>
-    <h1>{{ post.title }}</h1>
-        <p>{{ post.content }}</p>
-    <p>Author: {{ post.author }}</p>
-    <p>Published on: {{ post.created_at }}</p>
+    
+    <a href="{% url 'post_delete' post.id %}">Delete</a>
+    {% load cache %}
 
-    <h2>Comments</h2>
-    <ul>
-        {% for comment in comments %}
-            <li>{{ comment.text }} - {{ comment.author }}</li>
-        {% endfor %}
-    </ul>
+    <h2>Post Details</h2>
+    <p>{{ post.title }}</p>
+    <p>{{ post.content }}</p>
+    
+    <h3>Comments</h3>
+    
+    {% cache 60 latest_comments post.id %}
+        <ul>
+            {% for comment in comments %}
+                <li>{{ comment.text }} - {{ comment.author }}</li>
+            {% endfor %}
+        </ul>
+    {% endcache %}
+    
     {% if user.is_authenticated %}
         <h2>Add a Comment</h2>
         <form method="post">

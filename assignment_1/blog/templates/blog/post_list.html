@@ -11,6 +11,14 @@
     {% else %}
         <p><a href="{% url 'login' %}">Login</a> | <a href="{% url 'register' %}">Register</a></p>
     {% endif %}
+    {% load cache %}
+    {% cache 60 recent_comments post.id %}
+        <div class="recent-comments">
+            {% for comment in post.comments.all %}
+                {{ comment.content }}
+            {% endfor %}
+        </div>
+    {% endcache %}
     
     <h1>Blog Posts</h1>
     <div>
